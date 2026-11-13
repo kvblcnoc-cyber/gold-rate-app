@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gold Rate Reel Maker</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#fff8e7;--fg:#3b1f0a;--card:#fff;--bd:#e5c76b;--ac:#b8860b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1208;--fg:#fbe9b7;--card:#2a1c0d;--bd:#5a4215;--ac:#f0b429}}
+:root[data-theme="dark"]{--bg:#1c1208;--fg:#fbe9b7;--card:#2a1c0d;--bd:#5a4215;--ac:#f0b429}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px system-ui,sans-serif;padding:14px;max-width:520px;margin:auto}
+h1{font-size:20px;margin:4px 0 12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px;margin-bottom:12px}
+label{display:block;font-size:13px;margin:8px 0 3px;opacity:.8}
+input{width:100%;box-sizing:border-box;padding:10px;font-size:16px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--fg)}
+.row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+button{flex:1;padding:13px;font-size:16px;font-weight:700;border:0;border-radius:10px;background:var(--ac);color:#1c1208}
+button.alt{background:transparent;color:var(--fg);border:1px solid var(--ac)}
+.btns{display:flex;gap:8px;margin-top:12px}
+canvas{width:100%;border-radius:14px;background:#000;display:block}
+#msg{font-size:13px;margin-top:8px;min-height:18px}
+</style></head><body>
+<h1>🪙 Daily Gold Rate Reel</h1>
+<canvas id="c" width="720" height="1280"></canvas>
+<div class="card" style="margin-top:12px">
+<label>Channel name</label><input id="ch" value="Your Channel">
+<label>Place</label><input id="pl" value="Kerala">
+<div class="row">
+<div><label>24K / gram ₹</label><input id="r24" type="number" inputmode="decimal"></div>
+<div><label>22K / gram ₹</label><input id="r22" type="number" inputmode="decimal"></div>
+<div><label>18K / gram ₹</label><input id="r18" type="number" inputmode="decimal"></div></div>
+<div class="btns"><button class="alt" id="pv">▶ Preview</button><button id="rec">⏺ Record &amp; Save</button></div>
+<div id="msg"></div></div>
+<script>
+const C=document.getElementById('c'),x=C.getContext('2d'),W=720,H=1280,D=10;
+const $=i=>document.getElementById(i),ids=['ch','pl','r24','r22','r18'];
+try{const s=JSON.parse(localStorage.getItem('gold')||'{}');ids.forEach(i=>{if(s[i]!=null)$(i).value=s[i]})}catch(e){}
+const save=()=>{try{const s={};ids.forEach(i=>s[i]=$(i).value);localStorage.setItem('gold',JSON.stringify(s))}catch(e){}};
+const ease=t=>1-Math.pow(1-Math.min(1,Math.max(0,t)),3);
+const fmt=n=>'₹'+Math.round(+n||0).toLocaleString('en-IN');
+function guy(cx,cy,s,t,walk,wave){
+ x.save();x.translate(cx,cy+(walk?Math.abs(Math.sin(t*9))*-12:Math.sin(t*3)*-4)*s);x.scale(s,s);
+ const sw=walk?Math.sin(t*9)*10:0,skin='#dba274',gold='#f0b429',cream='#fff3d6',ex=y=>48+24*(y+5)/195;
+ x.lineCap='round';x.lineJoin='round';
+ // braid
+ x.strokeStyle='#111';x.lineWidth=24;x.beginPath();x.moveTo(-30,-50);x.bezierCurveTo(-75,0,-60+sw*2,60,-50+sw*3,125);x.stroke();
+ x.fillStyle='#fff';for(let i=0;i<8;i++){const f=i/7,m=1-f;
+  const px=m*m*m*-30+3*m*m*f*-75+3*m*f*f*(-60+sw*2)+f*f*f*(-50+sw*3),py=m*m*m*-50+3*m*m*f*0+3*m*f*f*60+f*f*f*125;
+  x.beginPath();x.arc(px,py,7,0,7);x.fill()}
+ // feet
+ x.fillStyle=skin;x.beginPath();x.ellipse(-20+sw,192,16,8,0,0,7);x.ellipse(20-sw,192,16,8,0,0,7);x.fill();
+ // saree skirt
+ x.fillStyle=cream;x.beginPath();x.moveTo(-48,-5);x.lineTo(48,-5);x.lineTo(ex(185)+sw,185);x.lineTo(-ex(185)-sw,185);x.closePath();x.fill();
+ x.fillStyle=gold;x.beginPath();x.moveTo(-ex(160),160);x.lineTo(ex(160),160);x.lineTo(ex(186)+sw,186);x.lineTo(-ex(186)-sw,186);x.closePath();x.fill();
+ // blouse
+ x.fillStyle='#8c1c3a';x.beginPath();x.roundRect(-44,-10,88,58,18);x.fill();
+ // pallu
+ x.fillStyle=cream;x.strokeStyle=gold;x.lineWidth=6;x.beginPath();x.moveTo(-40,-8);x.lineTo(-12,-8);x.lineTo(62,150);x.lineTo(36,156);x.closePath();x.fill();x.stroke();
+ // necklace
+ x.strokeStyle=gold;x.lineWidth=5;x.beginPath();x.arc(0,-14,26,.25,Math.PI-.25);x.stroke();
+ x.fillStyle=gold;x.beginPath();x.arc(0,13,6,0,7);x.fill();
+ // arms
+ x.strokeStyle=skin;x.lineWidth=16;
+ x.beginPath();x.moveTo(-42,8);x.lineTo(-56,70);x.stroke();
+ const a=wave?-1.1+Math.sin(t*10)*.35:1.2,hx=42+Math.cos(a)*70,hy=8+Math.sin(a)*70;
+ x.beginPath();x.moveTo(42,8);x.lineTo(hx,hy);x.stroke();
+ x.strokeStyle=gold;x.lineWidth=5;x.beginPath();x.arc(hx,hy,9,0,7);x.moveTo(-56+9,70);x.arc(-56,70,9,0,7);x.stroke();
+ // head
+ x.fillStyle=skin;x.beginPath();x.arc(0,-62,52,0,7);x.fill();
+ x.fillStyle=gold;x.beginPath();x.arc(-54,-46,5,0,7);x.arc(54,-46,5,0,7);x.fill();
+ // hair
+ x.fillStyle='#111';x.beginPath();x.moveTo(-54,-62);x.arc(0,-62,54,Math.PI,2*Math.PI);x.lineTo(54,-62);x.quadraticCurveTo(30,-98,0,-88);x.quadraticCurveTo(-30,-98,-54,-62);x.fill();
+ x.strokeStyle=skin;x.lineWidth=2;x.beginPath();x.moveTo(0,-88);x.lineTo(0,-110);x.stroke();
+ // jasmine
+ x.fillStyle='#fff';x.strokeStyle='#e9e2c8';x.lineWidth=1.5;
+ for(let i=0;i<7;i++){const g=Math.PI+.15+i*.2;x.beginPath();x.arc(Math.cos(g)*52,-62+Math.sin(g)*52,6.5,0,7);x.fill();x.stroke()}
+ // face
+ x.fillStyle='rgba(255,90,100,.25)';x.beginPath();x.arc(-30,-42,9,0,7);x.arc(30,-42,9,0,7);x.fill();
+ x.fillStyle='#fff';x.beginPath();x.ellipse(-18,-60,10,7.5,0,0,7);x.ellipse(18,-60,10,7.5,0,0,7);x.fill();
+ x.fillStyle='#1a0d05';x.beginPath();x.arc(-18,-60,5,0,7);x.arc(18,-60,5,0,7);x.fill();
+ x.strokeStyle='#111';x.lineWidth=3;x.beginPath();x.moveTo(-29,-62);x.lineTo(-32,-67);x.moveTo(29,-62);x.lineTo(32,-67);
+ x.moveTo(-28,-74);x.quadraticCurveTo(-18,-80,-8,-74);x.moveTo(28,-74);x.quadraticCurveTo(18,-80,8,-74);x.stroke();
+ x.fillStyle='#d00000';x.beginPath();x.arc(0,-78,4,0,7);x.fill();
+ x.strokeStyle='#c1121f';x.lineWidth=5;x.beginPath();x.arc(0,-50,14,.25,Math.PI-.25);x.stroke();
+ x.restore()}
+function bubble(t,txt){const k=ease(t*4);if(k<=0)return;x.save();x.translate(360,430);x.scale(k,k);
+ x.fillStyle='#fff';x.beginPath();x.roundRect(-290,-110,580,200,36);x.moveTo(-30,90);x.lineTo(0,150);x.lineTo(30,90);x.fill();
+ x.fillStyle='#7a1f1f';x.textAlign='center';x.font='800 54px system-ui';
+ txt.forEach((l,i)=>x.fillText(l,0,-30+i*68));x.restore()}
+function draw(t){
+ const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#5b0f0f');g.addColorStop(1,'#1c0a05');x.fillStyle=g;x.fillRect(0,0,W,H);
+ for(let i=0;i<22;i++){const px=(i*97)%W,py=(i*211+t*40)%H,r=2+(i%3)*2;x.fillStyle='rgba(240,180,41,'+(.3+.3*Math.sin(t*3+i))+')';x.beginPath();x.arc(px,py,r,0,7);x.fill()}
+ x.textAlign='center';x.fillStyle='#f0b429';x.font='800 40px system-ui';x.fillText($('ch').value.toUpperCase(),360,90);
+ const now=new Date(),ds=now.toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+ x.fillStyle='#fbe9b7';x.font='600 30px system-ui';x.fillText(ds+' • '+$('pl').value,360,138);
+ if(t<4.6){
+  const gx=t<2.2?-150+ease(t/2.2)*510:360,gs=1.7;
+  if(t>=4.0){const m=ease((t-4)/.6);guy(gx+(150-gx)*m,700+(1020-700)*m,gs-(gs-1.1)*m,t,false,false)}
+  else guy(gx,700,gs,t,t<2.2,t>=2.2);
+  if(t>2.3&&t<4.2)bubble(t-2.3,['Today’s Gold','Update!'])
+ }else{
+  guy(150,1080,1.1,t,false,t<5.6);
+  const k=ease((t-4.6)/.6);x.save();x.translate(0,(1-k)*-900);
+  x.fillStyle='rgba(255,248,231,.97)';x.beginPath();x.roundRect(50,190,620,700,40);x.fill();
+  x.fillStyle='#7a1f1f';x.font='800 48px system-ui';x.fillText('TODAY’S GOLD RATE',360,265);
+  x.font='600 26px system-ui';x.fillStyle='#8a6d1f';x.fillText('per gram  |  per pavan (8 g)',360,310);
+  [['24K','r24'],['22K','r22'],['18K','r18']].forEach((r,i)=>{
+   const q=ease((t-5.0-i*.4)/.4),y=350+i*175;x.globalAlpha=q;
+   x.fillStyle='#f0b429';x.beginPath();x.roundRect(80,y,560,150,26);x.fill();
+   x.fillStyle='#3b1f0a';x.textAlign='left';x.font='800 58px system-ui';x.fillText(r[0],110,y+92);
+   x.textAlign='right';x.font='800 46px system-ui';x.fillText(fmt($(r[1]).value)+' /g',610,y+62);
+   x.font='700 36px system-ui';x.fillText(fmt($(r[1]).value*8)+' /pavan',610,y+114);x.globalAlpha=1;x.textAlign='center'});
+  x.restore();
+  x.fillStyle='#fbe9b7';x.font='700 34px system-ui';x.textAlign='center';x.fillText('Follow for daily gold updates ✨',460,1100)}
+}
+let raf=0;
+function play(onEnd){cancelAnimationFrame(raf);const s=performance.now();
+ (function f(n){const t=(n-s)/1000;draw(Math.min(t,D));if(t<D)raf=requestAnimationFrame(f);else onEnd&&onEnd()})(s)}
+async function saveFile(blob,name){
+ const cap=window.Capacitor;
+ try{
+  if(cap&&cap.isNativePlatform&&cap.isNativePlatform()){
+   const data=await new Promise((r,j)=>{const f=new FileReader();f.onload=()=>r(f.result.split(',')[1]);f.onerror=j;f.readAsDataURL(blob)});
+   const {Filesystem,Share}=cap.Plugins;
+   const w=await Filesystem.writeFile({path:name,data,directory:'CACHE'});
+   await Share.share({title:name,files:[w.uri]});msg('Ready: '+name);return}
+  if(typeof claude!=='undefined'){const d=await claude.use('downloads');if(d){await d.save({filename:name,data:blob});msg('Saved '+name);return}}
+  const u=URL.createObjectURL(blob),l=document.createElement('a');l.href=u;l.download=name;l.click();msg('Saved '+name)
+ }catch(e){msg(e&&e.code==='declined'?'Save cancelled.':'Could not save: '+((e&&e.message)||e))}}
+const msg=m=>$('msg').textContent=m;
+function ok(){if(!$('r22').value){msg('Enter at least the 22K rate first.');return false}save();return true}
+$('pv').onclick=()=>{if(ok()){msg('');play()}};
+$('rec').onclick=async()=>{
+ if(!ok())return;
+ const mt=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm'].find(m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m));
+ if(!mt){msg('Recording is not supported in this browser. Use Chrome.');return}
+ const ch=[],mr=new MediaRecorder(C.captureStream(30),{mimeType:mt,videoBitsPerSecond:6e6});
+ mr.ondataavailable=e=>e.data.size&&ch.push(e.data);
+ mr.onstop=async()=>{const ext=mt.includes('mp4')?'mp4':'webm',blob=new Blob(ch,{type:mt});
+  const name='gold-rate-'+new Date().toISOString().slice(0,10)+'.'+ext;
+  await saveFile(blob,name)};
+ msg('Recording… '+D+' seconds');mr.start();play(()=>setTimeout(()=>mr.stop(),300))};
+['input','change'].forEach(e=>document.addEventListener(e,()=>{if(!raf)draw(D-.5)}));
+draw(D-.5);
+</script></body></html>
